@@ -44,6 +44,10 @@ proc ts2vmd_usage {} {
   	puts "	removing domains/inclusions/exclusions"
   	puts " 		clean_ts \[OPTIONS\]"
   	puts ""
+        puts "Rescale coordinates of vertices:"
+        puts ""
+ 	puts "		rescale_coords \[OPTIONS\]"
+        puts ""
   	puts "Show/hide periodic box:"
   	puts ""
   	puts "		show_box / hide_box"
@@ -872,15 +876,15 @@ proc resize_box { args } {
 	}
 
 	foreach { n m } $args {
-		if { $n == "-x" } { set x $m }
-		if { $n == "-y" } { set y $m }
-		if { $n == "-z" } { set z $m }
+		if { $n == "-x" } { set a $m }
+		if { $n == "-y" } { set b $m }
+		if { $n == "-z" } { set c $m }
 	}
 
 	# set new box
 	remove
-	set ::box [list $x $y $z]
-	set center_box [list [expr $x/2] [expr $y/2] [expr $z/2]]
+	set ::box [list $a $b $c]
+	set center_box [list [expr $a/2] [expr $b/2] [expr $c/2]]
 
 	# move the coordinates
 	set sel [atomselect top all]
@@ -916,6 +920,61 @@ proc resize_box_usage {} {
   	puts ""
 }
 
+proc rescale_coords {args} {
+
+        set args [join $args]
+        set args [split $args]
+
+        if {[ llength $args ] < 6 } {
+                rescale_coords_usage
+                return -code 1
+        }
+
+        foreach { n m } $args {
+                if { $n == "-x" } { set a $m }
+                if { $n == "-y" } { set b $m }
+                if { $n == "-z" } { set c $m }
+        }
+
+        # uppate coordinates of vertices
+        set newcoords {}
+        set vertex 0
+        set sel [atomselect top all]
+        foreach coord [$sel get {x y z}] {
+                set x "[format "%.10f" [expr [lindex $coord 0] * $a ]]"
+                set y "[format "%.10f" [expr [lindex $coord 1] * $b ]]"
+                set z "[format "%.10f" [expr [lindex $coord 2] * $c ]]"
+                set ::vertices [ lreplace $::vertices $vertex $vertex "[format "%s      %s      %s      %s" $vertex $x $y $z]" ]
+                lappend newcoords [list $x $y $z]
+                incr vertex
+        }
+
+        #update view
+  	$sel set {x y z} $newcoords
+	
+	#update pbc box
+	set ::box [list [expr [lindex $::box 0] * $a ] [expr [lindex $::box 1] * $b ] [expr [lindex $::box 2] * $c ]]
+	show_box
+	display resetview
+}
+
+
+proc rescale_coords_usage {} {
+        puts ""
+        puts " USAGE"
+        puts "-------"
+        puts ""
+        puts "Rescaling coordinates:"
+        puts ""
+        puts "   rescale_coords \[OPTIONS\]"
+        puts ""
+        puts "Options and default values:"
+        puts "   -x     1       rescale factor in x dimension"
+        puts "   -y     1       resacle factor in y dimension"
+        puts "   -z     1       rescale factor in z dimension"
+        puts ""
+
+}
 
 #---------------------------------------------------------------------------------------------------------------------------------------- 
 # Draw surface and/or bonds of triangles
