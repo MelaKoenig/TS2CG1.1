@@ -93,13 +93,17 @@ void links::UpdateNormal()
     m_Normal=v1+v2;
     
 
-     
+
     
     double norm=m_Normal.norm();
     m_Normal=m_Normal*(1.0/norm);
        if(norm==0)
        {
-           std::cout<<"Links normall vector error \n";
+           std::cout<<"Links normall vector error  \n";
+           std::cout<<v1(0)<<"   "<<v1(1)<<"   "<<v1(2)<<"   \n";
+           std::cout<<v2(0)<<"   "<<v2(1)<<"   "<<v2(2)<<"   \n";
+           std::cout<<m_T1->GetTriID()<<"   "<<(m_mirorlink->GetTriangle())->GetTriID()<<"      \n";
+
        }
 
     
@@ -174,6 +178,11 @@ Vec3D Box=(*pBox);
   
     Vec3D Re(dx1,dy1,dz1);
     double renorm=(Re.norm());
+    if(renorm==0)
+    {
+        std::cout<<" Error: There is an problem it should be resolved \n";
+        exit(0);
+    }
     Re=Re*(1.0/renorm);
     Vec3D Be=m_Normal*Re;
     
